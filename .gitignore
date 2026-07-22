@@ -1,0 +1,13 @@
+# Zip-extraction / OS junk
+__MACOSX/
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Raw + resized training images (large, not needed to reproduce the adapter)
+style_imgs/
+
+# Stray duplicate weights file at the repo root; lora_out/ has the real output
+/pytorch_lora_weights.safetensors

@@ -1,0 +1,80 @@
+### Starting TaskPrologue of job 3875459 on a0429 at Tue Jul 21 01:01:09 AM CEST 2026
+Running on cores 0-15 with governor performance
+Tue Jul 21 01:01:09 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 610.43.02              KMD Version: 610.43.02     CUDA UMD Version: 13.3     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A40                     On  |   00000000:41:00.0 Off |                  Off |
+|  0%   34C    P8             22W /  300W |       0MiB /  49140MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+### Finished TaskPrologue
+
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Traceback (most recent call last):
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/transformers/modeling_utils.py", line 695, in _get_resolved_checkpoint_files
+    resolved_archive_file = cached_file(pretrained_model_name_or_path, filename, **cached_file_kwargs)
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/transformers/utils/hub.py", line 293, in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/transformers/utils/hub.py", line 527, in cached_files
+    raise e
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/transformers/utils/hub.py", line 437, in cached_files
+    hf_hub_download(
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1013, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1236, in _hf_hub_download_to_cache_dir
+    _download_to_tmp_and_move(
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 1920, in _download_to_tmp_and_move
+    xet_get(
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/huggingface_hub/file_download.py", line 563, in xet_get
+    with session.new_file_download_group(
+RuntimeError: Task error: File reconstruction error: CAS Client Error: Request middleware error: error sending request for url (https://cas-server.xethub.hf.co/v2/reconstructions/4e7380d25abc80168fe0db5f0d6e0edab1872d32797745e24a57c1278d956b73)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/hpc/v123be/v123be43/thesis/gibli/assignment4/code/train_lora.py", line 246, in <module>
+    main()
+  File "/home/hpc/v123be/v123be43/thesis/gibli/assignment4/code/train_lora.py", line 111, in main
+    text_encoder = CLIPTextModel.from_pretrained(args.model_name, subfolder="text_encoder")
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/transformers/modeling_utils.py", line 4355, in from_pretrained
+    checkpoint_files, sharded_metadata = _get_resolved_checkpoint_files(
+  File "/home/hpc/v123be/v123be43/.conda/envs/sks_lora/lib/python3.10/site-packages/transformers/modeling_utils.py", line 775, in _get_resolved_checkpoint_files
+    raise OSError(
+OSError: Can't load the model for 'runwayml/stable-diffusion-v1-5'. If you were trying to load it from 'https://huggingface.co/models', make sure you don't have a local directory with the same name. Otherwise, make sure 'runwayml/stable-diffusion-v1-5' is the correct path to a directory containing a file named pytorch_model.bin.
+=== JOB_STATISTICS ===
+=== current date     : Tue Jul 21 01:11:47 CEST 2026
+= Job-ID             : 3875459 on alex
+= Job-Name           : sks_lora_train
+= Job-Command        : /home/hpc/v123be/v123be43/thesis/gibli/assignment4/jobs/train_lora.sbatch
+= Initial workdir    : /home/hpc/v123be/v123be43/thesis/gibli/assignment4
+= Queue/Partition    : a40
+= Slurm account      : v123be with QOS=normal
+= Requested resources:  for 01:00:00
+= Elapsed runtime    : 00:10:38
+= Total RAM usage    : 0.8 GiB of assigned  GiB (%)
+= Node list          : a0429
+= Subm/Elig/Start/End: 2026-07-21T01:01:08 / 2026-07-21T01:01:08 / 2026-07-21T01:01:09 / 2026-07-21T01:11:47
+======================
+=== Quota infos ======
+    Path                 Used     SoftQ    HardQ    Gracetime  Filec    FileQ    FiHaQ    FileGrace    
+!!! /home/hpc             153.6G   104.9G   209.7G  -29050days     386K     500K   1,000K        N/A !!!
+    /home/vault           143.3G  1048.6G  2097.2G        N/A     141K     200K     400K        N/A    
+    /home/atuin             0.0K     0.0K     0.0K        N/A       1                           N/A    
+======================
+=== GPU utilization ==
+gpu_name, gpu_bus_id, pid, gpu_utilization [%], mem_utilization [%], max_memory_usage [MiB], time [ms]

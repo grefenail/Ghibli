@@ -1,0 +1,61 @@
+### Starting TaskPrologue of job 3875508 on a0428 at Tue Jul 21 01:35:09 AM CEST 2026
+Running on cores 96-111 with governor performance
+Tue Jul 21 01:35:09 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 610.43.02              KMD Version: 610.43.02     CUDA UMD Version: 13.3     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A40                     On  |   00000000:C1:00.0 Off |                  Off |
+|  0%   34C    P8             22W /  300W |       0MiB /  49140MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+### Finished TaskPrologue
+
+Couldn't connect to the Hub: Cannot reach https://huggingface.co/api/models/runwayml/stable-diffusion-v1-5: offline mode is enabled. To disable it, please unset the `HF_HUB_OFFLINE` environment variable..
+Will try to load from local cache.
+Loading pipeline components...:   0%|          | 0/6 [00:00<?, ?it/s]Loading pipeline components...:  17%|█▋        | 1/6 [00:00<00:01,  2.62it/s]
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s][A
+Loading weights:   1%|          | 2/196 [00:00<00:18, 10.53it/s][A
+Loading weights:  18%|█▊        | 35/196 [00:00<00:01, 113.91it/s][A
+Loading weights:  53%|█████▎    | 104/196 [00:00<00:00, 296.30it/s][A
+Loading weights:  87%|████████▋ | 170/196 [00:00<00:00, 323.89it/s][ALoading weights: 100%|██████████| 196/196 [00:00<00:00, 267.44it/s]
+Loading pipeline components...:  33%|███▎      | 2/6 [00:01<00:02,  1.41it/s]Loading pipeline components...:  67%|██████▋   | 4/6 [00:08<00:05,  2.62s/it]Loading pipeline components...:  83%|████████▎ | 5/6 [00:09<00:02,  2.01s/it]Loading pipeline components...: 100%|██████████| 6/6 [00:09<00:00,  1.60s/it]
+[transformers] The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+Loading weights:   0%|          | 0/96 [00:00<?, ?it/s]Loading weights: 100%|██████████| 96/96 [00:00<00:00, 12019.86it/s]
+samples/adapter_sample_1.png
+samples/adapter_sample_2.png
+samples/adapter_sample_3.png
+=== JOB_STATISTICS ===
+=== current date     : Tue Jul 21 01:35:45 CEST 2026
+= Job-ID             : 3875508 on alex
+= Job-Name           : sks_lora_eval
+= Job-Command        : /home/hpc/v123be/v123be43/thesis/gibli/assignment4/jobs/eval_lora.sbatch
+= Initial workdir    : /home/hpc/v123be/v123be43/thesis/gibli/assignment4
+= Queue/Partition    : a40
+= Slurm account      : v123be with QOS=normal
+= Requested resources:  for 00:20:00
+= Elapsed runtime    : 00:00:43
+= Total RAM usage    : 6.8 GiB of assigned  GiB (%)
+= Node list          : a0428
+= Subm/Elig/Start/End: 2026-07-21T01:35:00 / 2026-07-21T01:35:00 / 2026-07-21T01:35:02 / 2026-07-21T01:35:45
+======================
+=== Quota infos ======
+    Path                 Used     SoftQ    HardQ    Gracetime  Filec    FileQ    FiHaQ    FileGrace    
+!!! /home/hpc             153.6G   104.9G   209.7G  -29050days     386K     500K   1,000K        N/A !!!
+    /home/vault           235.7G  1048.6G  2097.2G        N/A     141K     200K     400K        N/A    
+    /home/atuin             0.0K     0.0K     0.0K        N/A       1                           N/A    
+======================
+=== GPU utilization ==
+gpu_name, gpu_bus_id, pid, gpu_utilization [%], mem_utilization [%], max_memory_usage [MiB], time [ms]
+NVIDIA A40, 00000000:C1:00.0, 2129710, 13 %, 8 %, 5576 MiB, 25222 ms
