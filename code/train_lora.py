@@ -30,6 +30,13 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, required=True, help="Directory to save the LoRA weights into.")
     parser.add_argument("--resolution", type=int, default=512)
     parser.add_argument("--rank", type=int, default=8)
+    parser.add_argument(
+        "--lora_alpha",
+        type=int,
+        default=None,
+        help="LoRA scaling numerator (scale = lora_alpha / rank). Defaults to --rank (scale=1x) "
+        "if not given.",
+    )
     parser.add_argument("--learning_rate", type=float, default=1e-4)
     parser.add_argument("--max_steps", type=int, default=800)
     parser.add_argument("--train_batch_size", type=int, default=1)
@@ -40,16 +47,31 @@ def parse_args():
     parser.add_argument("--mixed_precision", type=str, default="fp16", choices=["fp16", "bf16", "no"])
     parser.add_argument("--num_workers", type=int, default=0)
     parser.add_argument(
+        "--train_token_embedding",
+        action="store_true",
+        help="Also make the <sks> token's own embedding row trainable (textual-inversion "
+        "style), alongside the LoRA adapters. Off by default: normally <sks> stays at its "
+        "random initialization and only the surrounding LoRA attention deltas are trained.",
+    )
+    parser.add_argument(
         "--overwrite",
         action="store_true",
         help="Overwrite an existing lora weights file in output_dir. Without this flag, the script "
         "refuses to run if the output file already exists.",
     )
+    parser.add_argument(
+        "--cfg_dropout_prob",
+        type=float,
+        default=0.0,
+        help="Probability per training step of swapping the batch's caption for an empty "
+        "prompt, so the model also learns the unconditional case. Improves classifier-free "
+        "guidance at inference time. 0.0 (default) disables it.",
+    )
     return parser.parse_args()
 
 
 class StyleImageDataset(Dataset):
-    """Pairs every training image with the same fixed style prompt (textual-inversion style)."""
+    """Pairs each training image with the shared style prompt (textual-inversion style)."""
 
     def __init__(self, data_dir, tokenizer, prompt, resolution=512):
         self.paths = sorted(p for p in Path(data_dir).iterdir() if p.suffix.lower() in IMAGE_SUFFIXES)
@@ -71,7 +93,8 @@ class StyleImageDataset(Dataset):
         return len(self.paths)
 
     def __getitem__(self, idx):
-        image = Image.open(self.paths[idx]).convert("RGB")
+        path = self.paths[idx]
+        image = Image.open(path).convert("RGB")
         pixel_values = self.transform(image)
         tokenized = self.tokenizer(
             self.prompt,
@@ -125,28 +148,50 @@ def main():
     else:
         print(f"Added {args.instance_token} to the tokenizer.")
         text_encoder.resize_token_embeddings(len(tokenizer))
+    token_id = tokenizer.convert_tokens_to_ids(args.instance_token)
 
     # Freeze the base weights; only the LoRA adapter weights added below will be trained.
     vae.requires_grad_(False)
     unet.requires_grad_(False)
     text_encoder.requires_grad_(False)
 
+    lora_alpha = args.lora_alpha if args.lora_alpha is not None else args.rank
+
     # Attach low-rank adapters to the attention projections of both the UNet (image
     # denoising) and the text encoder (prompt conditioning) — a "dual-adapter" LoRA setup.
     unet_lora_config = LoraConfig(
         r=args.rank,
-        lora_alpha=args.rank,
+        lora_alpha=lora_alpha,
         init_lora_weights="gaussian",
         target_modules=["to_q", "to_k", "to_v", "to_out.0"],
     )
     text_lora_config = LoraConfig(
         r=args.rank,
-        lora_alpha=args.rank,
+        lora_alpha=lora_alpha,
         init_lora_weights="gaussian",
         target_modules=["q_proj", "k_proj", "v_proj", "out_proj"],
     )
     unet.add_adapter(unet_lora_config)
     text_encoder.add_adapter(text_lora_config)
+
+    if args.train_token_embedding:
+        # Make just the <sks> row of the embedding table trainable (textual-inversion
+        # style) by masking the gradient of every other row to zero, so a single AdamW
+        # step over the whole embedding matrix only ever moves that one row.
+        # Must happen AFTER add_adapter(): PEFT's adapter injection marks only its own
+        # LoRA parameters as trainable and resets every other param's requires_grad to
+        # False, which would otherwise silently undo this.
+        token_embeds = text_encoder.get_input_embeddings()
+        token_embeds.weight.requires_grad_(True)
+        frozen_rows = torch.ones((len(tokenizer),), dtype=torch.bool, device=token_embeds.weight.device)
+        frozen_rows[token_id] = False
+
+        def _zero_frozen_rows(grad, mask=frozen_rows):
+            grad = grad.clone()
+            grad[mask] = 0
+            return grad
+
+        token_embeds.weight.register_hook(_zero_frozen_rows)
 
     weight_dtype = torch.float16 if args.mixed_precision == "fp16" and device == "cuda" else torch.float32
     vae.to(device, dtype=weight_dtype)
@@ -165,6 +210,17 @@ def main():
         num_workers=args.num_workers,
         collate_fn=collate_fn,
     )
+
+    if args.cfg_dropout_prob > 0:
+        uncond_tokenized = tokenizer(
+            "",
+            padding="max_length",
+            truncation=True,
+            max_length=tokenizer.model_max_length,
+            return_tensors="pt",
+        )
+        uncond_input_ids = uncond_tokenized.input_ids.to(device)
+        uncond_attention_mask = uncond_tokenized.attention_mask.to(device)
 
     optimizer = torch.optim.AdamW(trainable_params, lr=args.learning_rate)
     updates_per_epoch = math.ceil(len(dataloader) / args.gradient_accumulation_steps)
@@ -188,6 +244,11 @@ def main():
             pixel_values = batch["pixel_values"].to(device, dtype=weight_dtype)
             input_ids = batch["input_ids"].to(device)
             attention_mask = batch["attention_mask"].to(device)
+
+            if args.cfg_dropout_prob > 0 and random.random() < args.cfg_dropout_prob:
+                batch_size = input_ids.shape[0]
+                input_ids = uncond_input_ids.expand(batch_size, -1)
+                attention_mask = uncond_attention_mask.expand(batch_size, -1)
 
             # Encode to the frozen VAE's latent space; no grad needed since the VAE isn't trained.
             with torch.no_grad():
@@ -254,6 +315,16 @@ def main():
         text_encoder_lora_layers=text_encoder_lora_layers,
         safe_serialization=True,
     )
+
+    if args.train_token_embedding:
+        # Fold the learned <sks> embedding row into the same required single output file,
+        # under a key name that won't collide with the LoRA adapter's own key schema.
+        from safetensors.torch import load_file, save_file
+
+        state_dict = load_file(weights_path)
+        state_dict["sks_token_embedding"] = token_embeds.weight.data[token_id].detach().cpu().clone()
+        save_file(state_dict, weights_path)
+        print(f"Folded learned {args.instance_token} embedding into {weights_path}")
 
     print(weights_path, weights_path.exists(), f"{weights_path.stat().st_size / 1024 / 1024:.2f} MB")
 

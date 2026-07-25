@@ -11,3 +11,5 @@ style_imgs/
 
 # Stray duplicate weights file at the repo root; lora_out/ has the real output
 /pytorch_lora_weights.safetensors
+
+.venv
