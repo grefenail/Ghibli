@@ -51,15 +51,21 @@ are understood as "market scene + learned style token," and the attached LoRA ad
 ## Repository Structure
 
 ```
-code/
-  train_lora.py    # tokenizer setup + dual-adapter LoRA training loop
-  eval_lora.py      # loads a trained checkpoint and renders sample images
-style_imgs/
-  original/         # full-resolution source frames
-  512/              # 512x512 training crops (full 845-image set)
-  512_800_market10/ # 800-image, 10%-market-oversampled variant
-lora_out/           # trained adapter output (pytorch_lora_weights.safetensors)
-samples/            # rendered evaluation images
+Ghibli_final/
+|-- README.md
+|-- report.pdf
+|-- requirements.txt
+|-- code/
+|   |-- train_lora.py   # tokenizer + dual-adapter
+|   |                   #   LoRA training loop
+|   \-- eval_lora.py    # load checkpoint, render
+|-- style_imgs/
+|   |-- original/          # full-res source frames
+|   |-- 512/               # 512 crops, full 845 set
+|   \-- 512_800_market10/  # 800 imgs, 10% market
+|-- lora_out/
+|   \-- pytorch_lora_weights.safetensors
+\-- samples/            # rendered eval images
 ```
 
 ## Setup
