@@ -13,3 +13,7 @@ style_imgs/
 /pytorch_lora_weights.safetensors
 
 .venv
+
+# SLURM job scripts and their output logs (cluster-specific, not needed to reproduce results)
+jobs/
+logs/
