@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument(
         "--guidance_scales",
         type=str,
-        default=None,
+        default="7.5",
         help="Comma-separated CFG values to sweep, e.g. '4.0,5.5,7.5,10.0'. "
         "Overrides --guidance_scale and renders one image per seed for each value.",
     )

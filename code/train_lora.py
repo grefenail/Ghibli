@@ -33,9 +33,9 @@ def parse_args():
     parser.add_argument(
         "--lora_alpha",
         type=int,
-        default=None,
-        help="LoRA scaling numerator (scale = lora_alpha / rank). Defaults to --rank (scale=1x) "
-        "if not given.",
+        default=16,
+        help="LoRA scaling numerator (scale = lora_alpha / rank). Fixed default of 16 "
+        "regardless of --rank.",
     )
     parser.add_argument("--learning_rate", type=float, default=1e-4)
     parser.add_argument("--max_steps", type=int, default=800)
@@ -62,7 +62,7 @@ def parse_args():
     parser.add_argument(
         "--cfg_dropout_prob",
         type=float,
-        default=0.0,
+        default=0.1,
         help="Probability per training step of swapping the batch's caption for an empty "
         "prompt, so the model also learns the unconditional case. Improves classifier-free "
         "guidance at inference time. 0.0 (default) disables it.",
@@ -155,19 +155,17 @@ def main():
     unet.requires_grad_(False)
     text_encoder.requires_grad_(False)
 
-    lora_alpha = args.lora_alpha if args.lora_alpha is not None else args.rank
-
     # Attach low-rank adapters to the attention projections of both the UNet (image
     # denoising) and the text encoder (prompt conditioning) — a "dual-adapter" LoRA setup.
     unet_lora_config = LoraConfig(
         r=args.rank,
-        lora_alpha=lora_alpha,
+        lora_alpha=args.lora_alpha,
         init_lora_weights="gaussian",
         target_modules=["to_q", "to_k", "to_v", "to_out.0"],
     )
     text_lora_config = LoraConfig(
         r=args.rank,
-        lora_alpha=lora_alpha,
+        lora_alpha=args.lora_alpha,
         init_lora_weights="gaussian",
         target_modules=["q_proj", "k_proj", "v_proj", "out_proj"],
     )
