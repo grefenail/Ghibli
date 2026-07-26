@@ -4,7 +4,7 @@
 ## Team
 
 - Prabin Sharma Poudel
-- Jayb
+- Azariah Asafo Agyei
 - Adam Lo Jen Khai
 
 Technical University of Nuremberg (UTN)
